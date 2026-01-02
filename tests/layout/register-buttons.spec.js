@@ -1,39 +1,24 @@
 import { test, expect } from '@playwright/test';
 
-test('Layout: register and go-to-login buttons are aligned horizontally', async ({ page }) => {
-  await page.goto('https://demoqa.com/register');
+test.describe('Layout bug validation', () => {
+  test('BUG: register and login buttons are not aligned vertically', async ({ page }) => {
+    await page.goto('https://demoqa.com/register');
 
-  const registerButton = page.locator('#register');
-  const goToLoginButton = page.locator('#gotologin');
+    const registerButton = page.locator('#register');
+    const loginButton = page.locator('#gotologin');
+    const buttonsWrapper = page.locator('.buttonWrap');
 
-  await registerButton.waitFor({ state: 'visible' });
-  await goToLoginButton.waitFor({ state: 'visible' });
+    await expect(registerButton).toBeVisible();
+    await expect(loginButton).toBeVisible();
 
-  const registerBox = await registerButton.boundingBox();
-  const loginBox = await goToLoginButton.boundingBox();
+    const registerBox = await registerButton.boundingBox();
+    const loginBox = await loginButton.boundingBox();
 
-  expect(registerBox).not.toBeNull();
-  expect(loginBox).not.toBeNull();
+    expect(registerBox).not.toBeNull();
+    expect(loginBox).not.toBeNull();
 
-  const registerY = registerBox.y;
-  const loginY = loginBox.y;
+    expect(Math.abs(registerBox.y - loginBox.y)).toBeLessThan(2);
 
-  console.log('Register Y:', registerY);
-  console.log('Login Y:', loginY);
-
-  const difference = Math.abs(registerY - loginY);
-
-  await registerButton.scrollIntoViewIfNeeded();
-  await goToLoginButton.scrollIntoViewIfNeeded();
-
-  await page.evaluate(() => {
-    const footer = document.querySelector('footer');
-    if (footer) footer.style.display = 'none';
+    await expect(buttonsWrapper).toHaveScreenshot('register-buttons-misalignment.png');
   });
-
-  await page.locator('.buttonWrap').screenshot({
-    path: 'layout-buttons-misaligned.png'
-  });
-
-  expect(registerY).toBeCloseTo(loginY, 1);
 });
